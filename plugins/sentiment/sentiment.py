@@ -6,6 +6,7 @@ import random
 import requests
 import re
 import os
+import yaml
 from textblob import TextBlob
 from pprint import pprint
 
@@ -22,6 +23,10 @@ crontable.append([30, "save_states"])
 BOT_STATE = BotState()
 
 BOT_MEMORY_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "justabot.memory")
+
+config = yaml.load(file(os.path.join(os.path.dirname(__file__), "..", "..", "rtmbot.conf"), 'r'))
+
+DEBUG = config['SENTIMENT_DEBUG']
 
 def save_states():
 	global BOT_STATE
@@ -104,7 +109,7 @@ def format_subjective(sentiment, data):
 		])
 
 def output(original_msg_data, response):
-	if os.environ.get("DEBUG"):
+	if DEBUG:
 		logging.info("%s (%s)" % (response, original_msg_data))
 	else:
 		global outputs
@@ -112,8 +117,6 @@ def output(original_msg_data, response):
 
 def process_message(data):
 	try:
-		# if os.environ.get("DEBUG"):
-		# 	print("got message from %s: %s" % (resolve_message_username(data), data))
 		t = TextBlob(data['text'])
 		if 'justabot' in data['text'] and data['type'] == 'bot_message':
 			outputs.append(data['channel']), ''
