@@ -137,7 +137,7 @@ def process_message(data):
 			else:
 				BOT_STATE.topics_count[n] = 1
 		if re.search("opioninated", data['text']) or re.search("strongest opinion", data['text']):
-			xs = [ (u, x['sum'] / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
+			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
 			xs = sorted(xs, key=lambda x: x[1])[:10]
 			userlist = ["%s. %s (avg absolute expressed sentence polarity %.2f)" % (i, resolve_message_username({'user': x[0]}), x[0], x[1]) for i, x in enumerate(xs)]
 			output(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
