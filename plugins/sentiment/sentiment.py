@@ -25,14 +25,14 @@ BOT_MEMORY_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "justabot.
 
 def save_states():
 	global BOT_STATE
-	pprint(BOT_STATE.topics_count)
-	pprint(BOT_STATE.users_avg_polarity)
+	logging.info(BOT_STATE.topics_count)
+	logging.info(BOT_STATE.users_avg_polarity)
 	try:
 		with open(BOT_MEMORY_FILE, 'wb+') as f:
 			pickle.dump(BOT_STATE, f)
-		print("saved bot memory to file %s" % (BOT_MEMORY_FILE, ))
+		logging.info("saved bot memory to file %s" % (BOT_MEMORY_FILE, ))
 	except IOError as e:
-		print("ERROR: could not save bot memory to file %s, reason is %s" % (BOT_MEMORY_FILE, e))
+		logging.info("ERROR: could not save bot memory to file %s, reason is %s" % (BOT_MEMORY_FILE, e))
 
 def load_states():
 	global BOT_STATE
@@ -40,10 +40,10 @@ def load_states():
 		with open(BOT_MEMORY_FILE, 'rb') as f:
 			global BOT_STATE
 			BOT_STATE = pickle.load(f)
-			pprint(BOT_STATE.topics_count)
-			pprint(BOT_STATE.users_avg_polarity)
+			logging.info(BOT_STATE.topics_count)
+			logging.info(BOT_STATE.users_avg_polarity)
 	except IOError:
-		print("could not load bot memory file %s, starting from scratch ..." % BOT_MEMORY_FILE)
+		logging.info("could not load bot memory file %s, starting from scratch ..." % BOT_MEMORY_FILE)
 		pass
 
 load_states()
@@ -105,7 +105,7 @@ def format_subjective(sentiment, data):
 
 def output(original_msg_data, response):
 	if os.environ.get("DEBUG"):
-		print("%s (%s)" % (response, original_msg_data))
+		logging.info("%s (%s)" % (response, original_msg_data))
 	else:
 		global outputs
 		outputs.append((original_msg_data['channel'], response))
