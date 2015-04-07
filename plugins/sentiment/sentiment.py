@@ -139,12 +139,12 @@ def process_message(data):
 		if re.search("opioninated", data['text']) or re.search("strongest opinion", data['text']):
 			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
 			xs = sorted(xs, key=lambda x: x[1])[:10]
-			userlist = ["%s. %s (avg absolute expressed sentence polarity %.2f)" % (i, resolve_message_username({'user': x[0]}), x[0], x[1]) for i, x in enumerate(xs)]
+			userlist = ["%s. %s (avg absolute expressed sentence polarity %.2f)" % (i, resolve_message_username({'user': x[0]}), x[1]) for i, x in enumerate(xs)]
 			output(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
 		elif re.search("topics", data['text']):
 			xs = BOT_STATE.topics_count.items()
 			xs = sorted(xs, key=lambda x: x[1])[:10]
-			topiclist = ["%s. %s (%d mentions)" % (i, x[0], x[1]) for i, x in enumerate(xs)]
+			topiclist = ["%s. %s (%d mention(s))" % (i, x[0], x[1]) for i, x in enumerate(xs)]
 			output(data, "The most often mentioned topics are: \n%s" % "\n".join(topiclist))
 	except Exception as e:
 		logging.getLogger().exception(e)
