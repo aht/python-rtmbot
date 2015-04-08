@@ -108,9 +108,9 @@ def format_subjective(sentiment, data):
 		"Heart-metling, %s, though lacking a strong view point. Having a strong opinion is a core value at Adatao, YKR?!?" % op,
 		])
 
-def output(original_msg_data, response):
+def response(original_msg_data, response):
 	if DEBUG:
-		logging.info("%s (%s)" % (response, original_msg_data))
+		logging.info("RESPONSE %s TO ORIGINAL MSG (%s)" % (response, original_msg_data))
 	else:
 		global outputs
 		outputs.append((original_msg_data['channel'], response))
@@ -118,36 +118,44 @@ def output(original_msg_data, response):
 def process_message(data):
 	try:
 		t = TextBlob(data['text'])
-		if 'justabot' in data['text'] and data['type'] == 'bot_message':
-			outputs.append(data['channel']), ''
+		if 'justabot' in data['text']:
+			if data['type'] == 'bot_message':
+				response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
+			else:
+				response(data, signature_message())
 		if t.sentiment.polarity > 0.5:
 			if t.sentiment.subjectivity > 0.5:
-				output(data, format_polarized_subjective(t.sentiment, data))
+				response(data, format_polarized_subjective(t.sentiment, data))
 			else:
-				output(data, format_polarized(t.sentiment, data))
+				response(data, format_polarized(t.sentiment, data))
 		elif t.sentiment.subjectivity > 0.5:
-			output(data, format_subjective(t.sentiment, data))
-		if data['user'] in BOT_STATE.users_avg_polarity:
-			x = BOT_STATE.users_avg_polarity[data['user']]
+			response(data, format_subjective(t.sentiment, data))
+
+		username = resolve_message_username(data)
+		if username in BOT_STATE.users_avg_polarity:			
+			x = BOT_STATE.users_avg_polarity[username]
 			x['sum'] += abs(t.sentiment.polarity)
 			x['count'] += 1
-			BOT_STATE.users_avg_polarity[data['user']] = x
+			BOT_STATE.users_avg_polarity[username] = x
 		else:
-			BOT_STATE.users_avg_polarity[data['user']] = {'sum': 0, 'count': 0}
+			BOT_STATE.users_avg_polarity[username] = {'sum': abs(t.sentiment.polarity), 'count': 1}
+
 		for n in t.noun_phrases:
 			if n in BOT_STATE.topics_count:
 				BOT_STATE.topics_count[n] += 1
 			else:
 				BOT_STATE.topics_count[n] = 1
+		
 		if re.search("opioninated", data['text']) or re.search("strongest opinion", data['text']):
 			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
-			xs = sorted(xs, key=lambda x: x[1])[:10]
-			userlist = ["%s. %s (avg absolute expressed sentence polarity %.2f)" % (i, resolve_message_username({'user': x[0]}), x[1]) for i, x in enumerate(xs)]
-			output(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
+			xs = sorted(xs, key=lambda x: x[1], reverse=True)[:10]
+			userlist = ["%s. %s (avg absolute message polarity %.2f)" % (i, x[0], x[1]) for i, x in enumerate(xs)]
+			response(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
 		elif re.search("topics", data['text']):
 			xs = BOT_STATE.topics_count.items()
-			xs = sorted(xs, key=lambda x: x[1])[:10]
-			topiclist = ["%s. %s (%d mention(s))" % (i, x[0], x[1]) for i, x in enumerate(xs)]
-			output(data, "The most often mentioned topics are: \n%s" % "\n".join(topiclist))
+			xs = sorted(xs, key=lambda x: x[1], reverse=True)[:10]
+			topiclist = ["%s. %s (%d mentions)" % (i, x[0], x[1]) for i, x in enumerate(xs) if x[1] > 1]
+			response(data, "The most often mentioned topics are: \n%s" % "\n".join(topiclist))
 	except Exception as e:
-		logging.getLogger().exception(e)
+		logging.error("ERROR during processing message %s" % data)
+		logging.exception(e)
