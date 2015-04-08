@@ -18,7 +18,7 @@ class BotState():
 
 outputs = []
 crontable = []
-crontable.append([30, "save_states"])
+crontable.append([300, "save_states"])
 
 BOT_STATE = BotState()
 
@@ -70,11 +70,13 @@ def resolve_message_username(data):
 
 def signature_message():
 	return random.choices([
-		"Ask my master aht, but he probably won't have time. Too busy with GA, ya know! Why don't you go back to work and build something awesome?",
-		"IDK, why don't you express your opinion first then I'll tell you.",
+		"Ask my master aht, but he probably won't have time for you questions. Why don't you go back to work and build something awesome?",
+		"I was created in an afternoon's hack. Now I'm in GA status ready for the enterprise chat users. (I'm dead serious!)",
+		"IDK, why don't you express your sentiment first then I'll tell you.",
 		'I am well-trained in the arts of conversation (that\'s "NLP" for you geeks :).',
 		"Get back to me after you see these lectures http://nlp.stanford.edu/courses/NAACL2013/.",
-		"Do you deeply understand this yet? http://nlp.stanford.edu/courses/NAACL2013/",
+		"Do you deeply understand this yet? https://medium.com/deep-learning-101/on-deep-learning-a-tweeted-bibliography-68ab095376e7",
+		"Talk to khangbot if you want to get some real stuff done, like "khangbot releases" stuff. I'm still doing some deep learning here.",
 		"I use the Force to sense sentiments."])
 
 def format_polarized_subjective(sentiment, data):
@@ -83,21 +85,23 @@ def format_polarized_subjective(sentiment, data):
 			"+1 %s, also my opinion." % resolve_message_username(data),
 			"Thank you for thinking so positively yourself %s, I'm amazed." % resolve_message_username(data),
 			"That is personally very encouraging, %s!" % resolve_message_username(data),
-			"I sense strong & personal judgement.",
-			"Strongly opioninated subjective stuff!",])
-	else:
-		return random.choice([
-			"I sense strong & personal judgement.",
+			"I sense strongly positive & personal opinion.",
 			"Strongly opioninated subjective stuff!",
-			"Someone got an strong attitude..."])
+			"/me like it when someone express strong subjective opinion. Make sure to hold it only ever so weakly!"])
+	elif sentiment.polarity < 0.5:
+		return random.choice([
+			"I sense strong & personal opinion.",
+			"Strongly opioninated subjective stuff!",
+			"Sometimes you just gotta say it.",
+			"It will better next time, %s" % resolve_message_username(data)])
 
 def format_polarized(sentiment, data):
 	return random.choice([
-		"Cold, cold, %s" % resolve_message_username(data),
-		"%s, that's your view though you should express it in more personal terms, do DM me.",
-		"A polarized view, that is.",
+		"Cold, cold, cold opinion, %s." % resolve_message_username(data),
+		"Your sentiment is so polarized I feel like I'm in the South pole.",
 		"That's an objective opinion, %s." % resolve_message_username(data),
-		"You have expressed a preference, but can you be more personal %s?" % resolve_message_username(data)])
+		"That is the real objective truth bomb!"])
+
 
 def format_subjective(sentiment, data):
 	op = resolve_message_username(data)
@@ -123,7 +127,7 @@ def process_message(data):
 				response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
 			else:
 				response(data, signature_message())
-		if t.sentiment.polarity > 0.5:
+		if abs(t.sentiment.polarity) > 0.5:
 			if t.sentiment.subjectivity > 0.5:
 				response(data, format_polarized_subjective(t.sentiment, data))
 			else:
