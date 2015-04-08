@@ -76,7 +76,7 @@ def signature_message():
 		'I am well-trained in the arts of conversation (that\'s "NLP" for you geeks :).',
 		"Get back to me after you see these lectures http://nlp.stanford.edu/courses/NAACL2013/.",
 		"Do you deeply understand this yet? https://medium.com/deep-learning-101/on-deep-learning-a-tweeted-bibliography-68ab095376e7",
-		"Talk to khangbot if you want to get some real stuff done, like "khangbot releases" stuff. I'm still doing some deep learning here.",
+		"Talk to khangbot if you want to get some real stuff done, like releases stuff. I'm still doing some deep learning here.",
 		"I use the Force to sense sentiments."])
 
 def format_polarized_subjective(sentiment, data):
