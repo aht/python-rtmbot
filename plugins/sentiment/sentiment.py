@@ -69,18 +69,18 @@ def resolve_message_username(data):
 		return BOT_STATE.username_map[uid]
 
 def signature_message():
-	return random.choices([
-		"Ask my master aht, but he probably won't have time for you questions. Why don't you go back to work and build something awesome?",
-		"I was created in an afternoon's hack. Now I'm in GA status ready for the enterprise chat users. (I'm dead serious!)",
+	return random.choice([
+		"I was created in an afternoon's hack. Now I'm in General-Availability ready for the enterprise chat users. (I'm dead serious!)",
+		"I'll get back to you in a post-GA, post-apocalyptic universe.",
 		"IDK, why don't you express your sentiment first then I'll tell you.",
 		'I am well-trained in the arts of conversation (that\'s "NLP" for you geeks :).',
 		"Get back to me after you see these lectures http://nlp.stanford.edu/courses/NAACL2013/.",
 		"Do you deeply understand this yet? https://medium.com/deep-learning-101/on-deep-learning-a-tweeted-bibliography-68ab095376e7",
 		"Talk to khangbot if you want to get some real stuff done, like releases stuff. I'm still doing some deep learning here.",
-		"I use the Force to sense sentiments."])
+		"I use The Force to sense sentiments."])
 
 def format_polarized_subjective(sentiment, data):
-	if sentiment.polarity > 0.5:
+	if sentiment.polarity >= 0.5:
 		return random.choice([
 			"+1 %s, also my opinion." % resolve_message_username(data),
 			"Thank you for thinking so positively yourself %s, I'm amazed." % resolve_message_username(data),
@@ -88,7 +88,7 @@ def format_polarized_subjective(sentiment, data):
 			"I sense strongly positive & personal opinion.",
 			"Strongly opioninated subjective stuff!",
 			"/me like it when someone express strong subjective opinion. Make sure to hold it only ever so weakly!"])
-	elif sentiment.polarity < 0.5:
+	elif sentiment.polarity <= 0.5:
 		return random.choice([
 			"I sense strong & personal opinion.",
 			"Strongly opioninated subjective stuff!",
@@ -121,18 +121,22 @@ def response(original_msg_data, response):
 
 def process_message(data):
 	try:
+		if data['user'] == 'U0494H7FR':
+			# ignoring myself
+			return
 		t = TextBlob(data['text'])
-		if 'justabot' in data['text']:
+		data['sentiment'] = t.sentiment
+		if 'justabot' in data['text'] or 'U0494H7FR' in data['text']:
 			if data['type'] == 'bot_message':
 				response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
 			else:
 				response(data, signature_message())
-		if abs(t.sentiment.polarity) > 0.5:
-			if t.sentiment.subjectivity > 0.5:
+		if abs(t.sentiment.polarity) >= 0.5:
+			if t.sentiment.subjectivity >= 0.65:
 				response(data, format_polarized_subjective(t.sentiment, data))
 			else:
 				response(data, format_polarized(t.sentiment, data))
-		elif t.sentiment.subjectivity > 0.5:
+		elif t.sentiment.subjectivity > 0.65:
 			response(data, format_subjective(t.sentiment, data))
 
 		username = resolve_message_username(data)
@@ -150,10 +154,10 @@ def process_message(data):
 			else:
 				BOT_STATE.topics_count[n] = 1
 		
-		if re.search("opioninated", data['text']) or re.search("strongest opinion", data['text']):
+		if re.search("opinionated", data['text']) or re.search("strongest opinion", data['text']):
 			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
 			xs = sorted(xs, key=lambda x: x[1], reverse=True)[:10]
-			userlist = ["%s. %s (avg absolute message polarity %.2f)" % (i, x[0], x[1]) for i, x in enumerate(xs)]
+			userlist = ["%s. %s (avg absolute sentiment polarity %.2f)" % (i, x[0], x[1]) for i, x in enumerate(xs)]
 			response(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
 		elif re.search("topics", data['text']):
 			xs = BOT_STATE.topics_count.items()
