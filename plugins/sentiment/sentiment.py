@@ -139,18 +139,6 @@ def process_message(data):
 		data['text'] = clean(data['text'])
 		t = TextBlob(data['text'])
 		data['sentiment'] = t.sentiment
-		if 'justabot' in data['text'] or 'U0494H7FR' in data['text']:
-			if data.get('subtype', '') == 'bot_message':
-				response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
-			else:
-				response(data, signature_message())
-		if abs(t.sentiment.polarity) >= 0.65:
-			if t.sentiment.subjectivity >= 0.65:
-				response(data, format_polarized_subjective(t.sentiment, data))
-			else:
-				response(data, format_polarized(t.sentiment, data))
-		elif t.sentiment.subjectivity > 0.65:
-			response(data, format_subjective(t.sentiment, data))
 
 		username = resolve_message_username(data)
 		if username in BOT_STATE.users_avg_polarity:			
@@ -167,16 +155,29 @@ def process_message(data):
 			else:
 				BOT_STATE.topics_count[n] = 1
 		
+		# response to messages
 		if re.search("opinionated", data['text']) or re.search("strongest opinion", data['text']):
 			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
 			xs = sorted(xs, key=lambda x: x[1], reverse=True)[:20]
 			userlist = ["%s. %s (avg absolute sentiment polarity %.2f)" % (i, x[0], x[1]) for i, x in enumerate(xs)]
-			response(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
+			return response(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
 		elif re.search("topics", data['text']):
 			xs = BOT_STATE.topics_count.items()
 			xs = sorted(xs, key=lambda x: x[1], reverse=True)[:20]
 			topiclist = ["%s. %s (%d mentions)" % (i, x[0], x[1]) for i, x in enumerate(xs) if x[1] > 1]
-			response(data, "The most often mentioned topics are: \n%s" % "\n".join(topiclist))
+			return response(data, "The most often mentioned topics are: \n%s" % "\n".join(topiclist))
+		elif 'justabot' in data['text'] or 'U0494H7FR' in data['text']:
+			if data.get('subtype', '') == 'bot_message':
+				return response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
+			else:
+				return response(data, signature_message())
+		elif abs(t.sentiment.polarity) >= 0.65:
+			if t.sentiment.subjectivity >= 0.65:
+				return response(data, format_polarized_subjective(t.sentiment, data))
+			else:
+				return response(data, format_polarized(t.sentiment, data))
+		elif t.sentiment.subjectivity > 0.65:
+			return response(data, format_subjective(t.sentiment, data))
 	except Exception as e:
 		logging.error("ERROR during processing message %s" % data)
 		logging.exception(e)
