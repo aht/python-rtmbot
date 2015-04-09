@@ -116,9 +116,8 @@ def format_subjective(sentiment, data):
 		])
 
 def response(original_msg_data, response):
-	if DEBUG:
-		logging.info("RESPONSE %s TO ORIGINAL MSG (%s)" % (response, original_msg_data))
-	else:
+	logging.info("RESPONSE %s TO ORIGINAL MSG (%s)" % (response, original_msg_data))
+	if not DEBUG:
 		global outputs
 		outputs.append((original_msg_data['channel'], response))
 
@@ -157,7 +156,7 @@ def process_message(data):
 		
 		# response to messages
 		if re.search("opinionated", data['text']) or re.search("strongest opinion", data['text']):
-			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() ]
+			xs = [ (u, float(x['sum']) / x['count']) for u, x in BOT_STATE.users_avg_polarity.items() if x['count'] > 1 ]
 			xs = sorted(xs, key=lambda x: x[1], reverse=True)[:20]
 			userlist = ["%s. %s (avg absolute sentiment polarity %.2f)" % (i, x[0], x[1]) for i, x in enumerate(xs)]
 			return response(data, "The most opinionated users are: \n%s" % "\n".join(userlist))
