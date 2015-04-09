@@ -120,19 +120,29 @@ def response(original_msg_data, response):
 		global outputs
 		outputs.append((original_msg_data['channel'], response))
 
+def clean(text):
+	"""
+	>>> clean("<@U049ZH2FV|tom> has started a Google+ Hangout for this channel")
+	'U049ZH2FV|tom has started a Google+ Hangout for this channel'
+	"""
+	# remove mentions
+	text = re.sub(r"<@([A-Za-z0-9|]+)>", r"\1", text)
+	return text
+
 def process_message(data):
 	try:
 		if data['user'] == 'U0494H7FR':
 			# ignoring myself
 			return
+		data['text'] = clean(data['text'])
 		t = TextBlob(data['text'])
 		data['sentiment'] = t.sentiment
 		if 'justabot' in data['text'] or 'U0494H7FR' in data['text']:
-			if data['type'] == 'bot_message':
+			if data['subtype'] == 'bot_message':
 				response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
 			else:
 				response(data, signature_message())
-		if abs(t.sentiment.polarity) >= 0.5:
+		if abs(t.sentiment.polarity) >= 0.65:
 			if t.sentiment.subjectivity >= 0.65:
 				response(data, format_polarized_subjective(t.sentiment, data))
 			else:
