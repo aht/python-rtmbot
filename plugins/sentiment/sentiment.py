@@ -140,7 +140,7 @@ def process_message(data):
 		t = TextBlob(data['text'])
 		data['sentiment'] = t.sentiment
 		if 'justabot' in data['text'] or 'U0494H7FR' in data['text']:
-			if data['subtype'] == 'bot_message':
+			if data.get('subtype', '') == 'bot_message':
 				response(random.choice(['You are just a bot, your sentiment is fake.', 'You are just a bot, your words are manufactured.']))
 			else:
 				response(data, signature_message())
